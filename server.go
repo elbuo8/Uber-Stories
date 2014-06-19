@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	logrus "github.com/meatballhat/negroni-logrus"
 	"labix.org/v2/mgo"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -68,7 +67,7 @@ func SetGandalf(n *negroni.Negroni) {
 			switch err.(type) {
 			case nil:
 				if !token.Valid {
-					w.WriteHeader(http.StatusUnauthorized)
+					controllers.NotAllowed(w, r)
 					return
 				}
 				context.Set(r, "token", token)
@@ -77,14 +76,14 @@ func SetGandalf(n *negroni.Negroni) {
 				vErr := err.(*jwt.ValidationError)
 				switch vErr.Errors {
 				case jwt.ValidationErrorExpired:
-					w.WriteHeader(http.StatusUnauthorized)
+					controllers.ISR(w, r)
 					return
 				default:
-					w.WriteHeader(http.StatusInternalServerError)
+					controllers.ISR(w, r)
 					return
 				}
 			default:
-				w.WriteHeader(http.StatusInternalServerError)
+				controllers.ISR(w, r)
 				return
 			}
 		} else {

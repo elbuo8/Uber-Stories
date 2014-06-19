@@ -23,8 +23,9 @@ func ISR(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func BR(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusBadRequest)
+func BR(w http.ResponseWriter, r *http.Request, msg error, code int) {
+	w.WriteHeader(code)
+	fmt.Fprint(w, msg)
 	return
 }
 

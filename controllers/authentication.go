@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/elbuo8/uber-stories/models"
 	"github.com/gorilla/context"
@@ -16,14 +17,14 @@ var (
 )
 
 func init() {
-	signKey = []byte("Hello")
+	signKey = []byte("Hello") // change this later
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	user := new(models.User)
 	bErr := binding.Bind(r, user)
 	if bErr != nil {
-		BR(w, r)
+		BR(w, r, errors.New("Missing information"), http.StatusBadRequest)
 		log.Println(bErr)
 		return
 	}
@@ -32,12 +33,17 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		ISR(w, r)
 		return
 	}
-	err := models.CreateUser(dbSession.(*mgo.Session), user)
-	if err != nil {
-		// Make error reporting
-		log.Println(err)
-		ISR(w, r)
-		return
+	errM := models.CreateUser(dbSession.(*mgo.Session), user)
+	if errM != nil {
+		if errM.Internal {
+			ISR(w, r)
+			log.Println(errM.Reason)
+			return
+		} else {
+			BR(w, r, errM.Reason, http.StatusBadRequest)
+			return
+		}
+
 	}
 	context.Set(r, "user", user)
 	SetToken(w, r)
@@ -53,7 +59,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	pwd := r.FormValue("password")
 	if username == "" || pwd == "" {
-		BR(w, r)
+		BR(w, r, errors.New("Missing credentials"), http.StatusBadRequest)
 		return
 	}
 	dbSession, ok := context.GetOk(r, "dbSession")
@@ -61,11 +67,16 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		ISR(w, r)
 		return
 	}
-	user, err := models.AuthUser(dbSession.(*mgo.Session), username, pwd)
-	if err != nil {
-		BR(w, r)
-		log.Println(err) // Make error reporting
-		return
+	user, errM := models.AuthUser(dbSession.(*mgo.Session), username, pwd)
+	if errM != nil {
+		if errM.Internal {
+			ISR(w, r)
+			log.Println(err) // Make error reporting
+			return
+		} else {
+			BR(w, r, errM.Reason, http.StatusBadRequest)
+			return
+		}
 	}
 	context.Set(r, "user", user)
 	SetToken(w, r)
