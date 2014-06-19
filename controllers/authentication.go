@@ -74,7 +74,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	if errM != nil {
 		if errM.Internal {
 			ISR(w, r)
-			log.Println(err) // Make error reporting
+			log.Println(errM.Reason) // Make error reporting
 			return
 		} else {
 			BR(w, r, errM.Reason, http.StatusBadRequest)

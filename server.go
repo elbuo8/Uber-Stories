@@ -87,14 +87,16 @@ func SetGandalf(n *negroni.Negroni) {
 				vErr := err.(*jwt.ValidationError)
 				switch vErr.Errors {
 				case jwt.ValidationErrorExpired:
-					controllers.ISR(w, r)
+					controllers.BR(w, r, errors.New("Token Expired"), http.StatusUnauthorized)
 					return
 				default:
 					controllers.ISR(w, r)
+					log.Println(vErr.Error())
 					return
 				}
 			default:
 				controllers.ISR(w, r)
+				log.Println(err)
 				return
 			}
 		} else {
