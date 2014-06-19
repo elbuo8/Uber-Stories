@@ -63,3 +63,13 @@ func AuthUser(s *mgo.Session, u, pwd string) (*User, *Error) {
 	}
 	return user, nil
 }
+
+func FindUser(s *mgo.Session, id bson.ObjectId) (*User, *Error) {
+	uC := s.DB("uber-stories").C("user")
+	user := &User{}
+	err := uC.FindId(id).One(user)
+	if err != nil {
+		return nil, &Error{Reason: err, Internal: true}
+	}
+	return user, nil
+}
