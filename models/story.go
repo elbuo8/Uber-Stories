@@ -16,7 +16,7 @@ type Story struct {
 func NewStory(s *mgo.Session, a *User, content string) (*Story, *Error) {
 	sC := s.DB("uber-stories").C("story")
 	story := &Story{ID: bson.NewObjectId(), Author: a, Content: content, Created: time.Now()}
-	err := sC.Insert(s)
+	err := sC.Insert(story)
 	if err != nil {
 		return nil, &Error{Reason: err, Internal: true}
 	}

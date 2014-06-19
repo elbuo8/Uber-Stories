@@ -11,13 +11,8 @@ import (
 type User struct {
 	ID       bson.ObjectId `bson:"_id"`
 	Username string        `bson:"u"`
-	Password string        `bson:"pwd"`
-	Email    string        `bson:"mail"`
-}
-
-type Error struct {
-	Reason   error
-	Internal bool
+	Password string        `bson:"pwd, omitempty"`
+	Email    string        `bson:"mail, omitempty"`
 }
 
 func (u *User) FieldMap() binding.FieldMap {
