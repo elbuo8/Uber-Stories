@@ -3,16 +3,23 @@ package main
 import (
 	"./controllers"
 	"./models"
+	"errors"
 	"github.com/codegangsta/negroni"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	logrus "github.com/meatballhat/negroni-logrus"
+	"io/ioutil"
 	"labix.org/v2/mgo"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"strings"
+)
+
+const (
+	publicKey = ".keys/app.rsa.pub"
 )
 
 var (
@@ -20,8 +27,12 @@ var (
 )
 
 func init() {
-	// Make this proper later
-	verifyKey = []byte("bye")
+	var err error
+	verifyKey, err = ioutil.ReadFile(publicKey)
+	if err != nil {
+		log.Fatal("Error reading Private key")
+		return
+	}
 }
 
 func BuildApp() *negroni.Negroni {

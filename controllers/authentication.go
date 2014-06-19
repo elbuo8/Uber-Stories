@@ -6,10 +6,15 @@ import (
 	"github.com/elbuo8/uber-stories/models"
 	"github.com/gorilla/context"
 	"github.com/mholt/binding"
+	"io/ioutil"
 	"labix.org/v2/mgo"
 	"log"
 	"net/http"
 	"time"
+)
+
+const (
+	privateKey = ".keys/app.rsa"
 )
 
 var (
@@ -17,7 +22,11 @@ var (
 )
 
 func init() {
-	signKey = []byte("Hello") // change this later
+	var err error
+	signKey, err = ioutil.ReadFile(privateKey)
+	if err != nil {
+		log.Fatal("Error reading Private Key")
+	}
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -88,10 +97,10 @@ func SetToken(w http.ResponseWriter, r *http.Request) {
 		NotAllowed(w, r)
 		return
 	}
-	t := jwt.New(jwt.GetSigningMethod("HS256"))
-	t.Claims["ID"] = user.(*models.User).ID
+	t := jwt.New(jwt.GetSigningMethod("RS256"))
+	t.Claims["ID"] = user.(*models.User).ID.Hex()
+	t.Claims["username"] = user.(*models.User).Username
 	t.Claims["exp"] = time.Now().Add(time.Minute * 60 * 730).Unix()
-	log.Println(signKey)
 	tokenString, err := t.SignedString(signKey)
 	if err != nil {
 		ISR(w, r)
