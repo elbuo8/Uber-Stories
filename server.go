@@ -111,6 +111,15 @@ func SetDB(s *mgo.Session, n *negroni.Negroni) {
 }
 
 func SetMiddleware(n *negroni.Negroni) {
+	n.Use(negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		err := r.ParseForm()
+		if err != nil {
+			controllers.ISR(w, r)
+			log.Println(err)
+			return
+		}
+		next(w, r)
+	}))
 	n.Use(logrus.NewMiddleware())
 }
 

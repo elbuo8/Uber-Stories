@@ -59,12 +59,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		ISR(w, r)
-		log.Println(err)
-		return
-	}
 	username := r.FormValue("username")
 	pwd := r.FormValue("password")
 	if username == "" || pwd == "" {
