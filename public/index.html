@@ -1,5 +1,154 @@
+<!DOCTYPE html>
 <html>
-  <body>
-    LOOOL
+  <head>
+    <title>Uber Stories</title>
+    <link rel="stylesheet" type="text/css" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <style>
+
+      .container-fluid {
+        padding: 0px;
+      }
+      #side-panel {
+        background-color: #383838;
+        color: #FFFFFF;
+        height: 100vh;
+      }
+      #side-panel-content {
+        position: absolute;
+        left: 20%;
+        top: 50%;
+      }
+    </style>
+
+  </head>
+  <body ng-app='uber-stories'>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-4 col-md-2">
+
+          <div id="side-panel">
+            <div id="side-panel-content">
+              <div ui-view="account"></div>
+              <div ui-view="login"></div>
+              <div ui-view="register"></div>
+            </div>
+          </div>
+
+
+        </div>
+        <div class="col-xs-8 col-md-10">
+          <div ui-view="stories"></div>
+          Stories
+        </div>
+      </div>
+    </div>
+    <script src="/bower_components/angular/angular.min.js"></script>
+    <script src="/bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
+    <script src="/bower_components/angular-local-storage/angular-local-storage.min.js"></script>
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <script>
+
+      var app = angular.module('uber-stories', ['ui.router', 'LocalStorageModule']);
+
+      app.factory('AuthFactory', ['$http', function ($http) {
+
+        return {
+          register: function(user) {
+            return $http.put('/register', $.param(user), {headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
+          },
+          login: function(user) {
+            return $http.post('/login', $.param(user), {headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
+          }
+        };
+      }])
+
+      app.controller('AccountCtrl', ['$scope', '$location', 'localStorageService', function ($scope, $location, localStorageService) {
+        $scope.token = localStorageService.get('token');
+        if ($scope.token == null) {
+          $location.url('/login');
+        }
+      }]);
+
+      app.controller('AuthCtrl', ['$scope', '$location', 'localStorageService', 'AuthFactory', function ($scope, $location, localStorageService, AuthFactory) {
+        $scope.username;
+        $scope.password;
+        $scope.email;
+
+
+        $scope.login = function() {
+          if ($scope.AuthForm.$valid) {
+            var user = {
+              username: $scope.username,
+              password: $scope.password
+            };
+            AuthFactory.login(user).success(function(data) {
+              setToken(data.token);
+            }).error(function(data) {
+              console.log(data);
+            });
+          }
+        };
+
+        $scope.register = function() {
+          if ($scope.AuthForm.$valid) {
+            var user = {
+              username: $scope.username,
+              password: $scope.password,
+              email: $scope.email
+            };
+            AuthFactory.register(user).success(function(data) {
+              setToken(data.token);
+            }).error(function(data) {
+              console.log(data);
+            });
+          }
+        };
+
+        var setToken = function(token) {
+          localStorageService.add("token", token);
+          $location.url('/')
+        };
+
+      }]);
+
+      app.config(function($stateProvider, $urlRouterProvider) {
+        $urlRouterProvider.otherwise('/');
+
+        $stateProvider
+          .state('index', {
+            url: '/',
+            views: {
+              'account': {
+                templateUrl: 'partials/account.html',
+                controller: 'AccountCtrl'
+              },
+              'stories': { templateUrl: 'partials/stories.html' }
+            }
+          })
+          .state('register', {
+            url: '/register',
+            views: {
+              'register': {
+                templateUrl: 'partials/register.html',
+                controller: 'AuthCtrl'
+               },
+              'stories': { templateUrl: 'partials/stories.html' }
+            }
+          })
+          .state('login', {
+            url: '/login',
+            views: {
+              'login': {
+                templateUrl: 'partials/login.html',
+                controller: 'AuthCtrl'
+              },
+              'stories': { templateUrl: 'partials/stories.html' }
+            }
+          })
+      });
+
+    </script>
   </body>
 </html>
