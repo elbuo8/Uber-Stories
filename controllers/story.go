@@ -52,5 +52,5 @@ func SubmitAPI(w http.ResponseWriter, r *http.Request) {
 			BR(w, r, errM.Reason, http.StatusBadRequest)
 		}
 	}
-	ServeJSON(w, r, &Response{"id": story.ID})
+	ServeJSON(w, r, &Response{"id": story.ID}, http.StatusCreated)
 }
