@@ -9,10 +9,10 @@ import (
 )
 
 type User struct {
-	ID       bson.ObjectId `bson:"_id"`
-	Username string        `bson:"u"`
-	Password string        `bson:"pwd,omitempty"`
-	Email    string        `bson:"mail,omitempty"`
+	ID       bson.ObjectId `bson:"_id" json:"-"`
+	Username string        `bson:"u" json:"username"`
+	Password string        `bson:"pwd,omitempty" json:"-"`
+	Email    string        `bson:"mail,omitempty" json:"email"`
 }
 
 func (u *User) FieldMap() binding.FieldMap {
@@ -70,6 +70,8 @@ func FindUser(s *mgo.Session, id bson.ObjectId) (*User, *Error) {
 	err := uC.FindId(id).One(user)
 	if err != nil {
 		return nil, &Error{Reason: err, Internal: true}
+	} else if user.ID == "" {
+		return nil, &Error{Reason: errors.New("No user found"), Internal: false}
 	}
 	return user, nil
 }
