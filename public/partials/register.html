@@ -1,0 +1,9 @@
+<form name="AuthForm">
+  <input type="text" class="form-control" pattern=".{2,20}" required placeholder="Username" ng-model="username">
+  <br>
+  <input type="email" class="form-control" required placeholder="Email" ng-model="email">
+  <br>
+  <input type="password" class="form-control" pattern=".{6,20}" required placeholder="Password" ng-model="password">
+  <br>
+  <button ng-click="register()" class="btn btn-info">Register</button>
+</form>
