@@ -11,8 +11,8 @@ import (
 type User struct {
 	ID       bson.ObjectId `bson:"_id"`
 	Username string        `bson:"u"`
-	Password string        `bson:"pwd, omitempty"`
-	Email    string        `bson:"mail, omitempty"`
+	Password string        `bson:"pwd,omitempty"`
+	Email    string        `bson:"mail,omitempty"`
 }
 
 func (u *User) FieldMap() binding.FieldMap {
@@ -55,7 +55,7 @@ func AuthUser(s *mgo.Session, u, pwd string) (*User, *Error) {
 		return nil, &Error{Reason: err, Internal: true}
 	}
 	if user.ID == "" {
-		return nil, nil
+		return nil, &Error{Reason: errors.New("No user found")}
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(pwd))
 	if err != nil {
