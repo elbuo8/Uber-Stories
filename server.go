@@ -129,6 +129,7 @@ func SetRoutes(r *mux.Router) {
 	r.HandleFunc("/register", controllers.Register)
 	r.HandleFunc("/login", controllers.LogIn)
 	r.HandleFunc("/api/story", controllers.StoryHandler)
+	r.HandleFunc("/api/user", controllers.UserHandler)
 }
 
 func main() {
