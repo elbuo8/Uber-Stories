@@ -11,31 +11,25 @@ type Response map[string]interface{}
 func (r *Response) String() (s string) {
 	b, err := json.Marshal(r)
 	if err != nil {
-		s = ""
-		return
+		return ""
 	}
-	s = string(b)
-	return
+	return string(b)
 }
 
 func ISR(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
-	return
 }
 
 func BR(w http.ResponseWriter, r *http.Request, msg error, code int) {
-	w.WriteHeader(code)
-	fmt.Fprint(w, msg)
-	return
+	ServeJSON(w, r, &Response{"error": msg.Error()}, code)
 }
 
 func NotAllowed(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusUnauthorized)
-	return
 }
 
-func ServeJSON(w http.ResponseWriter, r *http.Request, json *Response) {
+func ServeJSON(w http.ResponseWriter, r *http.Request, json *Response, code int) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(code)
 	fmt.Fprint(w, json)
 }
