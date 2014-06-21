@@ -101,6 +101,6 @@ func SetToken(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	ServeJSON(w, r, &Response{"token": tokenString})
+	ServeJSON(w, r, &Response{"token": tokenString}, http.StatusOK)
 	return
 }
