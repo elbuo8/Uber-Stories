@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 )
 
 const (
@@ -70,7 +69,7 @@ func InitDB() *mgo.Session {
 
 func SetGandalf(n *negroni.Negroni) {
 	n.Use(negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		if h := r.Header.Get("Authorization"); strings.HasPrefix(r.URL.Path, "/api") && h != "" { // Token Required
+		if h := r.Header.Get("Authorization"); h != "" {
 			token, err := jwt.ParseFromRequest(r, func(token *jwt.Token) ([]byte, error) {
 				return verifyKey, nil
 			})
@@ -128,7 +127,7 @@ func SetMiddleware(n *negroni.Negroni) {
 func SetRoutes(r *mux.Router) {
 	r.HandleFunc("/register", controllers.Register)
 	r.HandleFunc("/login", controllers.LogIn)
-	r.HandleFunc("/api/story", controllers.StoryHandler)
+	r.HandleFunc("/api/story/{user}", controllers.StoryHandler)
 	r.HandleFunc("/api/user", controllers.UserHandler)
 }
 
