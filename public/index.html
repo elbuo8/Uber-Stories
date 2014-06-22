@@ -71,9 +71,22 @@
             return $http.get('/api/user', {headers: {'Authorization' : 'Bearer ' + token}});
           }
         };
-      }])
+      }]);
 
-      app.controller('AccountCtrl', ['$scope', '$location', 'localStorageService', 'User', function ($scope, $location, localStorageService, User) {
+      app.factory('Story', ['$http', function ($http) {
+
+        return {
+          get: function(token) {
+            return $http.get('/api/story', {headers: {'Authorization' : 'Bearer ' + token}});
+          },
+          getUserStory: function(token, user) {
+            return $http.get('/api/story/' + user, {headers: {'Authorization' : 'Bearer ' + token}});
+          }
+
+        };
+      }]);
+
+      app.controller('AccountCtrl', ['$scope', '$location', 'localStorageService', 'User', 'Story', function ($scope, $location, localStorageService, User, Story) {
         var token = localStorageService.get('token');
         if (token == null) {
           $location.url('/login');
@@ -88,6 +101,11 @@
       }]);
 
       app.controller('AuthCtrl', ['$scope', '$location', 'localStorageService', 'AuthFactory', function ($scope, $location, localStorageService, AuthFactory) {
+
+        if (localStorageService.get('token') != null) {
+          $location.url('/');
+        }
+
         $scope.username;
         $scope.password;
         $scope.email;
