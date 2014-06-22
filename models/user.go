@@ -9,10 +9,11 @@ import (
 )
 
 type User struct {
-	ID       bson.ObjectId `bson:"_id" json:"-"`
-	Username string        `bson:"u" json:"username"`
-	Password string        `bson:"pwd,omitempty" json:"-"`
-	Email    string        `bson:"mail,omitempty" json:"email"`
+	ID            bson.ObjectId `bson:"_id" json:"-"`
+	Username      string        `bson:"u" json:"username"`
+	Password      string        `bson:"pwd,omitempty" json:"-"`
+	Email         string        `bson:"mail,omitempty" json:"email"`
+	VerifiedEmail bool          `bson:"mailV,omitempty json:"VerifiedEmail"`
 }
 
 func (u *User) FieldMap() binding.FieldMap {
@@ -40,6 +41,7 @@ func CreateUser(s *mgo.Session, u *User) *Error {
 	}
 	u.Password = string(pwHash)
 	u.ID = bson.NewObjectId()
+	u.VerifiedEmail = false
 	err = uC.Insert(u)
 	if mgo.IsDup(err) {
 		return &Error{Reason: errors.New("Username exists already"), Internal: false}

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/elbuo8/uber-stories/models"
 	"github.com/gorilla/context"
@@ -23,8 +24,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	token, ok := context.GetOk(r, "token")
 	if !ok {
-		ISR(w, r)
-		log.Println("Couldn't retrive token from context")
+		BR(w, r, errors.New("Missing Token"), http.StatusUnauthorized)
 		return
 	}
 	tokenInfo := token.(*jwt.Token).Claims
@@ -34,7 +34,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		log.Println("Couldn't retrive dbSession from context")
 		return
 	}
-	log.Println(bson.ObjectIdHex(tokenInfo["ID"].(string)))
 	user, errM := models.FindUser(dbSession.(*mgo.Session), bson.ObjectIdHex(tokenInfo["ID"].(string)))
 	if errM != nil {
 		if errM.Internal {
@@ -48,6 +47,5 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	b, _ := json.Marshal(user)
 	parse := &Response{}
 	json.Unmarshal(b, parse)
-	log.Println(parse)
 	ServeJSON(w, r, parse, http.StatusOK)
 }
