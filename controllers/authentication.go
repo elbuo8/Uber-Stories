@@ -4,6 +4,7 @@ import (
 	"errors"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/elbuo8/uber-stories/models"
+	"github.com/elbuo8/uber-stories/services"
 	"github.com/gorilla/context"
 	"github.com/mholt/binding"
 	"io/ioutil"
@@ -52,10 +53,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			BR(w, r, errM.Reason, http.StatusBadRequest)
 			return
 		}
-
 	}
-	context.Set(r, "user", user)
-	SetToken(w, r)
+	services.ActivationEmail(user)
+	SetToken(w, r, user)
 }
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
@@ -81,19 +81,13 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	context.Set(r, "user", user)
-	SetToken(w, r)
+	SetToken(w, r, user)
 }
 
-func SetToken(w http.ResponseWriter, r *http.Request) {
-	user, ok := context.GetOk(r, "user")
-	if !ok {
-		NotAllowed(w, r)
-		return
-	}
+func SetToken(w http.ResponseWriter, r *http.Request, user *models.User) {
 	t := jwt.New(jwt.GetSigningMethod("RS256"))
-	t.Claims["ID"] = user.(*models.User).ID.Hex()
-	t.Claims["username"] = user.(*models.User).Username
+	t.Claims["ID"] = user.ID.Hex()
+	t.Claims["username"] = user.Username
 	t.Claims["exp"] = time.Now().Add(time.Minute * 60 * 730).Unix()
 	tokenString, err := t.SignedString(signKey)
 	if err != nil {
