@@ -7,10 +7,10 @@ import (
 )
 
 type Story struct {
-	ID      bson.ObjectId `bson:"_id"`
-	Author  *User         `bson:"a"`
-	Content string        `bson:"cnt"`
-	Created time.Time     `bson:"time"`
+	ID      bson.ObjectId `bson:"_id" json:"-"`
+	Author  *User         `bson:"a" json:"owner"`
+	Content string        `bson:"cnt" json:"story"`
+	Created time.Time     `bson:"time" json:"createdAt"`
 }
 
 func NewStory(s *mgo.Session, a *User, content string) (*Story, *Error) {
@@ -21,4 +21,14 @@ func NewStory(s *mgo.Session, a *User, content string) (*Story, *Error) {
 		return nil, &Error{Reason: err, Internal: true}
 	}
 	return story, nil
+}
+
+func StoriesByUser(s *mgo.Session, username string) ([]*Story, *Error) {
+	sC := s.DB("uber-stories").C("story")
+	var stories []*Story
+	err := sC.Find(bson.M{"a._u": username}).All(&stories)
+	if err != nil {
+		return nil, &Error{Reason: err, Internal: true}
+	}
+	return stories, nil
 }
