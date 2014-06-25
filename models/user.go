@@ -12,8 +12,8 @@ type User struct {
 	ID            bson.ObjectId `bson:"_id" json:"-"`
 	Username      string        `bson:"u" json:"username"`
 	Password      string        `bson:"pwd,omitempty" json:"-"`
-	Email         string        `bson:"mail,omitempty" json:"email"`
-	VerifiedEmail bool          `bson:"mailV,omitempty json:"VerifiedEmail"`
+	Email         string        `bson:"mail,omitempty" json:"email,omitempty"`
+	VerifiedEmail bool          `bson:"mailV,omitempty" json:"verifiedEmail,omitempty"`
 }
 
 func (u *User) FieldMap() binding.FieldMap {
@@ -79,6 +79,18 @@ func FindUser(s *mgo.Session, id bson.ObjectId) (*User, *Error) {
 	uC := s.DB("uber-stories").C("user")
 	user := &User{}
 	err := uC.FindId(id).One(user)
+	if err != nil {
+		return nil, &Error{Reason: err, Internal: true}
+	} else if user.ID == "" {
+		return nil, &Error{Reason: errors.New("No user found"), Internal: false}
+	}
+	return user, nil
+}
+
+func FindUserByEmail(s *mgo.Session, email string) (*User, *Error) {
+	uC := s.DB("uber-stories").C("user")
+	user := &User{}
+	err := uC.Find(bson.M{"mail": email}).One(user)
 	if err != nil {
 		return nil, &Error{Reason: err, Internal: true}
 	} else if user.ID == "" {
