@@ -81,19 +81,13 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 	dbSession, ok := context.GetOk(r, "dbSession")
 	if !ok {
-		ISR(w, r)
+		ISR(w, r, errors.New("Couldn't obtain DB Session"))
 		return
 	}
 	user, errM := models.AuthUser(dbSession.(*mgo.Session), username, pwd)
 	if errM != nil {
-		if errM.Internal {
-			ISR(w, r)
-			log.Println(errM.Reason) // Make error reporting
-			return
-		} else {
-			BR(w, r, errM.Reason, http.StatusBadRequest)
-			return
-		}
+		HandleModelError(w, r, errM)
+		return
 	}
 	SetToken(w, r, user)
 }
@@ -105,8 +99,7 @@ func SetToken(w http.ResponseWriter, r *http.Request, user *models.User) {
 	t.Claims["exp"] = time.Now().Add(time.Minute * 60 * 730).Unix()
 	tokenString, err := t.SignedString(signKey)
 	if err != nil {
-		ISR(w, r)
-		log.Println(err)
+		ISR(w, r, err)
 		return
 	}
 	ServeJSON(w, r, &Response{"token": tokenString}, http.StatusOK)

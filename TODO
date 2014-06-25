@@ -1,10 +1,7 @@
 TODO
 
-ISR should log
 Twitter webhook
-Submit via email
 Submit via twilio
-Email Activation
 Password Reset
 Replace bindings with gorilla binding
 Close routes with gorilla/mux methods

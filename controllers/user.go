@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/context"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
 	"net/http"
 )
 
@@ -30,18 +29,12 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	tokenInfo := token.(*jwt.Token).Claims
 	dbSession, ok := context.GetOk(r, "dbSession")
 	if !ok {
-		ISR(w, r)
-		log.Println("Couldn't retrive dbSession from context")
+		ISR(w, r, errors.New("Couldn't obtain DB Session"))
 		return
 	}
 	user, errM := models.FindUser(dbSession.(*mgo.Session), bson.ObjectIdHex(tokenInfo["ID"].(string)))
 	if errM != nil {
-		if errM.Internal {
-			ISR(w, r)
-			log.Println(errM.Reason)
-		} else {
-			BR(w, r, errM.Reason, http.StatusBadRequest)
-		}
+		HandleModelError(w, r, errM)
 	}
 	// Stupid hack. Fix.
 	b, _ := json.Marshal(user)

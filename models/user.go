@@ -66,6 +66,15 @@ func AuthUser(s *mgo.Session, u, pwd string) (*User, *Error) {
 	return user, nil
 }
 
+func VerifyEmail(s *mgo.Session, id bson.ObjectId) *Error {
+	uC := s.DB("uber-stories").C("user")
+	err := uC.UpdateId(id, bson.M{"$set": bson.M{"mailV": true}})
+	if err != nil {
+		return &Error{Reason: errors.New("Failed to update user"), Internal: true}
+	}
+	return nil
+}
+
 func FindUser(s *mgo.Session, id bson.ObjectId) (*User, *Error) {
 	uC := s.DB("uber-stories").C("user")
 	user := &User{}

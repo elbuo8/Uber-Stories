@@ -3,6 +3,8 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/elbuo8/uber-stories/models"
+	"log"
 	"net/http"
 )
 
@@ -16,8 +18,19 @@ func (r *Response) String() (s string) {
 	return string(b)
 }
 
-func ISR(w http.ResponseWriter, r *http.Request) {
+func HandleModelError(w http.ResponseWriter, r *http.Request, errM *models.Error) {
+	if errM.Internal {
+		ISR(w, r, errM.Reason)
+		return
+	} else {
+		BR(w, r, errM.Reason, http.StatusBadRequest)
+		return
+	}
+}
+
+func ISR(w http.ResponseWriter, r *http.Request, msg error) {
 	w.WriteHeader(http.StatusInternalServerError)
+	log.Println(msg)
 }
 
 func BR(w http.ResponseWriter, r *http.Request, msg error, code int) {

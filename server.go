@@ -89,13 +89,12 @@ func SetGandalf(n *negroni.Negroni) {
 					controllers.BR(w, r, errors.New("Token Expired"), http.StatusUnauthorized)
 					return
 				default:
-					controllers.ISR(w, r)
+					controllers.ISR(w, r, errors.New(vErr.Error()))
 					log.Println(vErr.Error())
 					return
 				}
 			default:
-				controllers.ISR(w, r)
-				log.Println(err)
+				controllers.ISR(w, r, err)
 				return
 			}
 		} else {
@@ -115,8 +114,7 @@ func SetMiddleware(n *negroni.Negroni) {
 	n.Use(negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		err := r.ParseForm()
 		if err != nil {
-			controllers.ISR(w, r)
-			log.Println(err)
+			controllers.ISR(w, r, err)
 			return
 		}
 		next(w, r)

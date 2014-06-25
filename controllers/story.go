@@ -41,8 +41,7 @@ func SubmitAPI(w http.ResponseWriter, r *http.Request) {
 	tokenInfo := token.(*jwt.Token).Claims
 	dbSession, ok := context.GetOk(r, "dbSession")
 	if !ok {
-		ISR(w, r)
-		log.Println("Couldn't retrive dbSession from context")
+		ISR(w, r, errors.New("Couldn't obtain DB Session"))
 		return
 	}
 	user := &models.User{
@@ -51,13 +50,7 @@ func SubmitAPI(w http.ResponseWriter, r *http.Request) {
 	}
 	story, errM := models.NewStory(dbSession.(*mgo.Session), user, content)
 	if errM != nil {
-		if errM.Internal {
-			ISR(w, r)
-			log.Println(errM.Reason)
-			return
-		} else {
-			BR(w, r, errM.Reason, http.StatusBadRequest)
-		}
+		HandleModelError(w, r, errM)
 	}
 	ServeJSON(w, r, &Response{"id": story.ID}, http.StatusCreated)
 }
@@ -71,12 +64,7 @@ func GetUserStories(w http.ResponseWriter, r *http.Request, username string) {
 	}
 	stories, errM := models.StoriesByUser(dbSession.(*mgo.Session), username)
 	if errM != nil {
-		if errM.Internal {
-			ISR(w, r)
-			log.Println(errM.Reason)
-		} else {
-			BR(w, r, errM.Reason, http.StatusBadRequest)
-		}
+		HandleModelError(w, r, errM)
 	}
 	b, _ := json.Marshal(stories)
 	var parse []Response
