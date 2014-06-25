@@ -22,11 +22,11 @@ func ActivationEmail(user *models.User) {
 	mail.SetFrom("yamil@sendgrid.com") // Change later
 	mail.SetSubject("Welcome to Uber Stories")
 	mail.AddFilter("templates", "enable", "1")
-	mail.SetHTML("")
-	mail.SetText("")
+	mail.SetHTML(" ")
+	mail.SetText(" ")
 	mail.AddFilter("templates", "template_id", "48ac26b1-d586-49f1-8d46-60a0b3d77c6a")
-	mail.AddSubstitution("username", user.Username)
-	mail.AddSubstitution("verifyURL", "http://localhost:3000/verify/"+string(user.ID)) // Change later
+	mail.AddSubstitution("##username##", user.Username)
+	mail.AddSubstitution("##verifyURL##", "http://localhost:3000/verify/"+user.ID.Hex()) // Change later
 	if err := Send(mail); err != nil {
 		log.Println(err)
 	}
