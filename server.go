@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 )
 
 const (
@@ -118,6 +119,13 @@ func SetMiddleware(n *negroni.Negroni) {
 			return
 		}
 		next(w, r)
+		if strings.Contains(r.Header.Get("Content-Type"), "multipart") {
+			err = r.ParseMultipartForm(1024)
+			if err != nil {
+				controllers.ISR(w, r, err)
+				return
+			}
+		}
 	}))
 	n.Use(logrus.NewMiddleware())
 }
