@@ -40,22 +40,36 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 	dbSession, ok := context.GetOk(r, "dbSession")
 	if !ok {
-		ISR(w, r)
+		ISR(w, r, errors.New("Couldn't obtain DB Session"))
 		return
 	}
 	errM := models.CreateUser(dbSession.(*mgo.Session), user)
 	if errM != nil {
-		if errM.Internal {
-			ISR(w, r)
-			log.Println(errM.Reason)
-			return
-		} else {
-			BR(w, r, errM.Reason, http.StatusBadRequest)
-			return
-		}
+		HandleModelError(w, r, errM)
+		return
 	}
-	services.ActivationEmail(user)
+	go services.ActivationEmail(user)
 	SetToken(w, r, user)
+}
+
+func VerifyEmail(w http.ResponseWriter, r *http.Request) {
+	dbSession, ok := context.GetOk(r, "dbSession")
+	if !ok {
+		ISR(w, r, errors.New("Couldn't obtain DB Session"))
+		return
+	}
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		BR(w, r, errors.New("Missing Hash"), http.StatusBadRequest)
+		return
+	}
+	errM := models.VerifyEmail(dbSession.(*mgo.Session), bson.ObjectIdHex(id))
+	if errM != nil {
+		HandleModelError(w, r, errM)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
