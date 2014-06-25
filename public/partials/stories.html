@@ -1,1 +1,25 @@
-STORIES
+<div class="col-xs-10 col-md-10">
+  <div ng-show="token">
+    <form class="form-horizontal" name="StoryForm">
+      <textarea class="form-control" ng-model="story" name="story" required ng-minlength=10 ng-trim=true  focus state>
+      </textarea>
+      <br>
+      <button ng-click="submitStory()" class="btn btn-primary pull-right">New Story</button>
+    </form>
+  </div>
+  <br>
+  <h3>Drivers, Nights and all the Crazyness</h3>
+  <br>
+  <div ng-repeat="s in stories">
+    <div class="story">
+      <p>
+        {{ s.story }}
+      </p>
+      <p class="pull-right">
+        - {{s.owner.username}}
+      </p>
+      <br>
+    </div>
+  </div>
+</div>
+
