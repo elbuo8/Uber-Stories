@@ -18,6 +18,9 @@
         left: 20%;
         top: 50%;
       }
+      #main-content {
+        padding-top: 2%;
+      }
     </style>
 
   </head>
@@ -37,8 +40,9 @@
 
         </div>
         <div class="col-xs-8 col-md-10">
-          <div ui-view="stories"></div>
-          Stories
+          <div id="main-content">
+            <div ui-view="stories"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -56,10 +60,10 @@
 
         return {
           register: function(user) {
-            return $http.put('/register', $.param(user), {headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
+            return $http.put('/auth', $.param(user), {headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
           },
           login: function(user) {
-            return $http.post('/login', $.param(user), {headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
+            return $http.post('/auth', $.param(user), {headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
           }
         };
       }]);
@@ -76,11 +80,11 @@
       app.factory('Story', ['$http', function ($http) {
 
         return {
-          get: function(token) {
-            return $http.get('/api/story', {headers: {'Authorization' : 'Bearer ' + token}});
+          get: function(user) {
+            return $http.get('/api/story' + ((user) ? ('/' + user) : ''));
           },
-          getUserStory: function(token, user) {
-            return $http.get('/api/story/' + user, {headers: {'Authorization' : 'Bearer ' + token}});
+          put: function(token, story) {
+            return $http.put('/api/story', $.param(story), {headers: {'Authorization' : 'Bearer ' + token, 'Content-Type': 'application/x-www-form-urlencoded'}});
           }
 
         };
@@ -88,16 +92,29 @@
 
       app.controller('AccountCtrl', ['$scope', '$location', 'localStorageService', 'User', 'Story', function ($scope, $location, localStorageService, User, Story) {
         var token = localStorageService.get('token');
+        $scope.username = localStorageService.get('username');
+        $scope.email = localStorageService.get('email');
+
         if (token == null) {
           $location.url('/login');
-        } else {
+        } else if ($scope.username == null || $scope.email == null) {
           User.get(token).success(function(data) {
             $scope.username = data.username;
             $scope.email = data.email;
+            localStorageService.add('username', data.username);
+            localStorageService.add('email', data.email);
           }).error(function(data) {
             console.log(data);
           });
         }
+
+        $scope.logout = function() {
+          localStorageService.remove('token');
+          localStorageService.remove('username');
+          localStorageService.remove('email');
+          $location.url('/login')
+        }
+
       }]);
 
       app.controller('AuthCtrl', ['$scope', '$location', 'localStorageService', 'AuthFactory', function ($scope, $location, localStorageService, AuthFactory) {
@@ -141,9 +158,39 @@
         };
 
         var setToken = function(token) {
-          localStorageService.add("token", token);
+          localStorageService.add('token', token);
           $location.url('/')
         };
+
+      }]);
+
+      app.controller('StoryCtrl', ['$scope', 'localStorageService', 'Story', function ($scope, localStorageService, Story) {
+
+        var token = localStorageService.get('token');
+
+        if (token) {
+          $scope.token = true;
+        }
+
+        $scope.submitStory = function() {
+          if ($scope.StoryForm.$valid) {
+            var payload = {
+              story: $scope.story
+            };
+            Story.put(token, payload).success(function(data) {
+              console.log(data);
+            }).error(function(data) {
+              console.log(data);
+            });
+
+          }
+        }
+
+        Story.get().success(function(data) {
+          $scope.stories = data.stories;
+        }).error(function(data) {
+          console.log(data);
+        });
 
       }]);
 
@@ -158,7 +205,10 @@
                 templateUrl: 'partials/account.html',
                 controller: 'AccountCtrl'
               },
-              'stories': { templateUrl: 'partials/stories.html' }
+              'stories': {
+                templateUrl: 'partials/stories.html',
+                controller: 'StoryCtrl'
+              }
             }
           })
           .state('register', {
@@ -168,7 +218,9 @@
                 templateUrl: 'partials/register.html',
                 controller: 'AuthCtrl'
                },
-              'stories': { templateUrl: 'partials/stories.html' }
+              'stories': { templateUrl: 'partials/stories.html',
+                controller: 'StoryCtrl'
+              }
             }
           })
           .state('login', {
@@ -178,7 +230,9 @@
                 templateUrl: 'partials/login.html',
                 controller: 'AuthCtrl'
               },
-              'stories': { templateUrl: 'partials/stories.html' }
+              'stories': { templateUrl: 'partials/stories.html',
+                controller: 'StoryCtrl'
+              }
             }
           })
       });
