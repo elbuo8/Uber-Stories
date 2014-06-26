@@ -6,9 +6,11 @@ import (
 	"github.com/elbuo8/uber-stories/models"
 	"github.com/elbuo8/uber-stories/services"
 	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
 	"github.com/mholt/binding"
 	"io/ioutil"
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"time"
@@ -27,6 +29,15 @@ func init() {
 	signKey, err = ioutil.ReadFile(privateKey)
 	if err != nil {
 		log.Fatal("Error reading Private Key")
+	}
+}
+
+func AuthorizationHandler(w http.ResponseWriter, r *http.Request) {
+	switch {
+	case r.Method == "PUT":
+		Register(w, r)
+	case r.Method == "POST":
+		LogIn(w, r)
 	}
 }
 
