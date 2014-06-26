@@ -131,12 +131,12 @@ func SetMiddleware(n *negroni.Negroni) {
 }
 
 func SetRoutes(r *mux.Router) {
-	r.HandleFunc("/auth", controllers.AuthorizationHandler).Methods("PUT POST")
-	r.HandleFunc("/verify/{id}", controllers.VerifyEmail).Methods("GET")
-	r.HandleFunc("/api/story", controllers.StoryHandler).Methods("GET PUT")
-	r.HandleFunc("/api/story/{user}", controllers.GetUserStories).Methods("GET")
-	r.HandleFunc("/api/user", controllers.UserHandler).Methods("GET")
-	r.HandleFunc("/webhook/email", controllers.SubmitEmail).Methods("POST")
+	r.HandleFunc("/auth", controllers.AuthorizationHandler)
+	r.HandleFunc("/verify/{id}", controllers.VerifyEmail)
+	r.HandleFunc("/api/story", controllers.StoryHandler)
+	r.HandleFunc("/api/story/{user}", controllers.GetUserStories)
+	r.HandleFunc("/api/user", controllers.UserHandler)
+	r.HandleFunc("/webhook/email", controllers.SubmitEmail)
 }
 
 func main() {
